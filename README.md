@@ -1,8 +1,9 @@
-# 基于数据特征的无监督对抗攻击方法
+# An unsupervised adversarial attack method based on data features
+
 
 ## Abstract
 
-得益于大规模数据集的涌现和硬件计算能力的提升，深度学习技术在社会各界得以广泛应用。然而，随着深度学习应用的普及，深度学习模型的不安全性逐渐显露出来，这使得对抗样本成为了一个备受关注的领域。数据集本身的结构是任何深度模型学习到有辨别力特征的基础，也是对抗样本构造的主要依据。受此启发，我们尝试从数据集内部特征出发，提取与位置相关的异常点，基于这些异常点应用频率定律实现对抗样本的构造。本文方法通过控制扰动的L0和Linf实现对攻击扰动点数和幅度的限制以达到稀疏攻击。本文方法利用特征提取和主成分分析方法对数据集各坐标进行降维，使用无监督算法搜索数据集中敏感点的坐标。然后根据频率定理破坏敏感点的高频信息生成对抗样本。本文方法在图像和时序数据集上进行了大量实验，实验结果表明了本文方法的有效性。
+Thanks to the emergence of large-scale datasets and the improvement of hardware computing capabilities, deep learning technology has been widely applied in various fields. However, as deep learning applications become more popular, the insecurity of deep learning models gradually becomes apparent, making adversarial samples a highly concerned area. The structure of the dataset itself is the basis for any deep model to learn discriminative features and is also the main basis for constructing adversarial samples. Inspired by this, we attempt to extract position-related anomalies from internal features of datasets and construct adversarial samples based on frequency laws. Our method limits the number and amplitude of attack perturbations by controlling L0 and Linf perturbations to achieve sparse attacks. Our method uses feature extraction and principal component analysis methods to reduce dimensions for each coordinate in a dataset, using unsupervised algorithms to search for sensitive point coordinates in a dataset. Then we generate adversarial samples by destroying high-frequency information at sensitive points based on frequency theory. We conducted extensive experiments on image and time-series datasets, which demonstrate that our approach is effective.
 
 ## Approach
 
