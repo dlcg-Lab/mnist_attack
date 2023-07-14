@@ -9,20 +9,20 @@ from config import get_config
 
 config = get_config('D:\Project\mnist_attack\configs\configMNIST.yaml')
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-train_data = torchvision.datasets.FashionMNIST(
-    root='../dataset',  # 数据集的位置
-    train=True,  # 如果为True则为训练集，如果为False则为测试集
-    transform=torchvision.transforms.ToTensor(),  # 将图片转化成取值[0,1]的Tensor用于网络处理
-    download=False
-)
-test_data = torchvision.datasets.FashionMNIST(
-    root='../dataset',  # 数据集的位置
-    train=False,  # 如果为True则为训练集，如果为False则为测试集
-    transform=torchvision.transforms.ToTensor(),  # 将图片转化成取值[0,1]的Tensor用于网络处理
-    download=False
-)
+# train_data = torchvision.datasets.FashionMNIST(
+#     root='../dataset',  # 数据集的位置
+#     train=True,  # 如果为True则为训练集，如果为False则为测试集
+#     transform=torchvision.transforms.ToTensor(),  # 将图片转化成取值[0,1]的Tensor用于网络处理
+#     download=False
+# )
+# test_data = torchvision.datasets.FashionMNIST(
+#     root='../dataset',  # 数据集的位置
+#     train=False,  # 如果为True则为训练集，如果为False则为测试集
+#     transform=torchvision.transforms.ToTensor(),  # 将图片转化成取值[0,1]的Tensor用于网络处理
+#     download=False
+# )
 
-root = "../dataset/FashionMNIST/raw"
+root = "../dataset/MNIST/raw"
 train_set = (
     mnist.read_image_file(os.path.join(root, 'train-images-idx3-ubyte')),
     mnist.read_label_file(os.path.join(root, 'train-labels-idx1-ubyte'))
@@ -47,7 +47,7 @@ def convert_to_img(train=True):
             f.write(img_path[1:] + ' ' + str(label.item()) + '\n')
         f.close()
     else:
-        f = open('../dataset/' + 'test.txt{}.txt'.format(config.DATA.name), 'w')
+        f = open('../dataset/' + 'test_{}.txt'.format(config.DATA.name), 'w')
         data_path = root + '/test/'
         if (not os.path.exists(data_path)):
             os.makedirs(data_path)

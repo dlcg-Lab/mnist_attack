@@ -42,9 +42,9 @@ _C.IosForest.sensitive_points_save_path = './SensitivePoints/sp'
 
 _C.attack = CN()
 _C.attack.pixel_num = 5
-_C.attack.beta = 1
+_C.attack.beta = 0.1
 _C.attack.neighbor_size = 5
-_C.attack.save_fig_max_num = 0
+_C.attack.save_fig_max_num = 10
 _C.attack.save_fig_path = './output_img/{}/'
 
 _C.DE = CN()

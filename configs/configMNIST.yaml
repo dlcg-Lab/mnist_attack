@@ -1,5 +1,5 @@
 DATA:
-  name : 'mnist'
+  name : 'MNIST'
   data_path: './dataset/'
   shape_in_c: 1
   shape_in_h: 28
@@ -23,7 +23,7 @@ TEST:
   batch_size: 1000
 
 IosForest:
-  processing: 'PCA'
+  processing: 'tsfel'
   contamination: 0.02
 
 auto:

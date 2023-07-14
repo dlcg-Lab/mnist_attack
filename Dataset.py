@@ -56,6 +56,7 @@ class pytorch_dataset(Dataset):
             file_path = config.DATA.dataset_list_train.format(config.DATA.name)
         else:
             file_path = config.DATA.dataset_list_test.format(config.DATA.name)
+        print(file_path)
         self.full_filenames = []
         self.labels = []
         with open(file_path, 'r') as file:

@@ -71,6 +71,8 @@ def IsoForestSpotter(config, auto=False):
         # print("({}, {})".format(x, y))
         results.append([x, y])
     results = np.array(results).astype('int8')
+
+
     np.savetxt(config.IosForest.sensitive_points_save_path + '_' + config.IosForest.processing + '_{}'.format(
         config.DATA.name) + '.csv', results,
                delimiter=',', fmt='%d')

@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from PIL import Image
+import os
 
 config = {
     "font.family": 'serif',
@@ -52,9 +53,24 @@ def sub_fig(image1, image2, label_1, label_2, label_gt, index=0, config=None):
 
     # 设置窗口的主标题
     fig.suptitle('Original Example & Adversarial Example \n Ground Truth : {} \n'.format(label_gt))
-
+    create_folders(config.attack.save_fig_path.format(config.DATA.name))
     # 显示窗口
     plt.savefig(config.attack.save_fig_path.format(config.DATA.name) + str(index) + '.png')
+
+
+def create_folders(path):
+    try:
+        os.makedirs(path)
+        print(f"Created folder: {path}")
+    except FileExistsError:
+        pass
+    except OSError as e:
+        print(f"Failed to create folder: {path} ({e})")
+    else:
+        # 继续递归创建子文件夹
+        for root, dirs, files in os.walk(path):
+            for dir_name in dirs:
+                create_folders(os.path.join(root, dir_name))
 
 
 def _grid(config=None, auto=False, DE=False):

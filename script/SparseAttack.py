@@ -61,13 +61,17 @@ def attack_sps(arr, sps, epsilon, config):
     return arr
 
 
-def sp_attack(config=None, cnn_model=None):
+def sp_attack(config=None, cnn_model=None, AT_flag=False):
     img_num = 0
     train_dataset, test_dataset = get_dataset(config=config)
 
     if cnn_model == None:
         cnn_model = Network(config=config).to(device)
-        cnn_model.load_state_dict(torch.load(config.MODEL.weight_path).format(config.DATA.name))
+        if AT_flag:
+            print(config.MODEL.weight_path.format(config.DATA.name + '_AT'))
+            cnn_model.load_state_dict(torch.load(config.MODEL.weight_path.format(config.DATA.name + '_AT')))
+        else:
+            cnn_model.load_state_dict(torch.load(config.MODEL.weight_path.format(config.DATA.name)))
     cnn_model.eval()
     sp = np.loadtxt(config.IosForest.sensitive_points_save_path + '_' + config.IosForest.processing + '_{}'.format(
         config.DATA.name) + '.csv', delimiter=',', dtype=int)

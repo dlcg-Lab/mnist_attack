@@ -16,14 +16,18 @@ from script.SparseAttack import sp_attack
 from utils import fig_hist
 from utils import CPv
 from OPA import OPA
+from PGD import PGD
 import warnings
 import platform
+from cleverhans.torch.attacks.projected_gradient_descent import (
+    projected_gradient_descent,
+)
 
 warnings.filterwarnings('ignore')
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-config = get_config('configs/configFashionMNIST.yaml')
+config = get_config('configs/configMNIST.yaml')
 
 if platform.system() == 'Linux':
     import matplotlib
@@ -56,7 +60,7 @@ def get_lr(opt):
         return param_group['lr']
 
 
-def loss_epoch(model, loss_func, dataset_dl, opt=None):
+def loss_epoch(model, loss_func, dataset_dl, opt=None, AT_flag=False):
     run_loss = 0.0
     t_metric = 0.0
     len_data = len(dataset_dl.dataset)
@@ -67,6 +71,8 @@ def loss_epoch(model, loss_func, dataset_dl, opt=None):
         yb = torch.as_tensor(yb)
         xb = xb.to(device)
         yb = yb.to(device)
+        if AT_flag:
+            xb = projected_gradient_descent(model, xb, 1 * config.attack.beta, 0.01, 40, np.inf)
         output = model(xb)  # get model output
         loss_b, metric_b = loss_batch(loss_func, output, yb, opt)  # get loss per batch
         run_loss += loss_b  # update running loss
@@ -99,7 +105,7 @@ def loss_batch(loss_func, output, target, opt=None):
     return loss.item(), metric_b
 
 
-def train_val(model, params, verbose=False):
+def train_val(model, params, AT_flag=False, verbose=False):
     # Get the parameters
     epochs = params["epochs"]
     loss_func = params["f_loss"]
@@ -130,7 +136,7 @@ def train_val(model, params, verbose=False):
         '''
 
         model.train()
-        train_loss, train_metric = loss_epoch(model, loss_func, train_dl, opt)
+        train_loss, train_metric = loss_epoch(model, loss_func, train_dl, opt, AT_flag)
 
         # collect losses
         loss_history["train"].append(train_loss)
@@ -152,7 +158,10 @@ def train_val(model, params, verbose=False):
             best_model_wts = copy.deepcopy(model.state_dict())
 
             # store weights into a local file
-            torch.save(model.state_dict(), weight_path.format(config.DATA.name))
+            if AT_flag:
+                torch.save(model.state_dict(), weight_path.format(config.DATA.name + '_AT'))
+            else:
+                torch.save(model.state_dict(), weight_path.format(config.DATA.name))
             if verbose:
                 print("Copied best model weights!")
 
@@ -198,7 +207,7 @@ def inference(model, dataset_dl, device, config):
     return float(metric_c / len_data) * 100
 
 
-def main_training():
+def main_training(AT_flag=False):
     train_dl, val_dl = get_dataset_dl(config=config)
 
     cnn_model = Network(config).to(device=device)
@@ -215,18 +224,24 @@ def main_training():
                                                   patience=20,
                                                   verbose=False)
     summary(cnn_model, input_size=params_model['shape_in'], device=device.type)
-    cnn_model, loss_hist, metric_hist = train_val(cnn_model, params_train)
+    cnn_model, loss_hist, metric_hist = train_val(cnn_model, params_train, AT_flag)
     fig_hist(params=params_train, loss_hist=loss_hist, metric_hist=metric_hist, config=config)
     main_testing()
 
 
-def main_testing():
+def main_testing(AT_flag=False):
     train_set, val_set = get_dataset_dl(config=config)
     print(len(val_set), 'samples found')
     cnn_model = Network(config).to(device=device)
-    cnn_model.load_state_dict(torch.load(params_model["weight_path"].format(config.DATA.name)))
+    if AT_flag:
+        cnn_model.load_state_dict(torch.load(params_model["weight_path"].format(config.DATA.name + '_AT')))
+    else:
+        cnn_model.load_state_dict(torch.load(params_model["weight_path"].format(config.DATA.name)))
+
+    # cnn_model.load_state_dict(torch.load(params_model["weight_path"].format(config.DATA.name)))
     acc = inference(model=cnn_model, dataset_dl=val_set, device=device, config=config)
     print('Test accuracy on test set: %0.2f%%\n' % acc)
+    return acc
     # print('Test accuracy on adversarial examples: %0.2f%%\n' % acc)
 
 
@@ -279,19 +294,66 @@ def autoHP(config=None):
     # CPv(config=config)
 
 
+def autoHP_1(config=None):
+    RES = np.zeros((2, 5)).astype('float')
+    RES[0, 0] = main_testing(False)
+    RES[0, 1] = PGD(config, False)
+    RES[0, 2] = OPA(config=config, AT_flag=False)
+    config.IosForest.processing = 'tsfel'
+    IsoForestSpotter(config=config)
+    _, RES[0, 3] = sp_attack(config=config, AT_flag=False)
+    config.IosForest.processing = 'PCA'
+    IsoForestSpotter(config=config)
+    _, RES[0, 4] = sp_attack(config=config, AT_flag=False)
+
+    RES[1, 0] = main_testing(True)
+    RES[1, 1] = PGD(config, True)
+    RES[1, 2] = OPA(config=config, AT_flag=True)
+    config.IosForest.processing = 'tsfel'
+    IsoForestSpotter(config=config)
+    _, RES[1, 3] = sp_attack(config=config, AT_flag=True)
+    config.IosForest.processing = 'PCA'
+    IsoForestSpotter(config=config)
+    _, RES[1, 4] = sp_attack(config=config, AT_flag=True)
+    np.savetxt('out.csv', RES, delimiter=',',
+               fmt='%.4f')
+
+
 if __name__ == "__main__":
     if sys.argv[1] == 'train':
-        main_training()
+        at_flag = False
+        if len(sys.argv) == 3 and sys.argv[2] == 'AT':
+            at_flag = True
+        else:
+            at_flag = False
+        main_training(AT_flag=at_flag)
     elif sys.argv[1] == 'test':
-        main_testing()
-    elif sys.argv[1] == 'sp':
-        IsoForestSpotter(config=config)
+        at_flag = False
+        if len(sys.argv) >= 3 and sys.argv[2] == 'AT':
+            at_flag = True
+        else:
+            at_flag = False
+        main_testing(AT_flag=at_flag)
     elif sys.argv[1] == 'attack':
-        sp_attack(config=config)
-    elif sys.argv[1] == 'DE':
-        OPA(config=config)
+        if sys.argv[2] == 'IFS':
+            IsoForestSpotter(config=config)
+            if len(sys.argv) == 4 and sys.argv[3] == 'AT':
+                sp_attack(config=config, AT_flag=True)
+            else:
+                sp_attack(config=config)
+        elif sys.argv[2] == 'DE':
+            if len(sys.argv) == 4 and sys.argv[3] == 'AT':
+                OPA(config=config, AT_flag=True)
+            else:
+                OPA(config=config)
+        elif sys.argv[2] == 'PGD':
+            if len(sys.argv) == 4 and sys.argv[3] == 'AT':
+                PGD(config=config, AT_flag=True)
+            else:
+                PGD(config=config, AT_flag=False)
     elif sys.argv[1] == 'auto':
-        autoHP(config=config)
+        autoHP_1(config=config)
+        # autoHP(config=config)
     elif sys.argv[1] == 'heatmap':
         _grid(config=config)
     elif sys.argv[1] == 'CPv':
