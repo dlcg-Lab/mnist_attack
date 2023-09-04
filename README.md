@@ -7,7 +7,7 @@ Thanks to the emergence of large-scale datasets and the improvement of hardware 
 
 ## Approach
 
-![](figs\lct.png)
+![](figs/lct.png)
  <div align="center"> <img src="output_img\684.png" width = 500 height = 300 /> </div>
 
 ## Data
