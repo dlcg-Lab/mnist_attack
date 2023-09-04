@@ -5,11 +5,6 @@
 
 Thanks to the emergence of large-scale datasets and the improvement of hardware computing capabilities, deep learning technology has been widely applied in various fields. However, as deep learning applications become more popular, the insecurity of deep learning models gradually becomes apparent, making adversarial samples a highly concerned area. The structure of the dataset itself is the basis for any deep model to learn discriminative features and is also the main basis for constructing adversarial samples. Inspired by this, we attempt to extract position-related anomalies from internal features of datasets and construct adversarial samples based on frequency laws. Our method limits the number and amplitude of attack perturbations by controlling L0 and Linf perturbations to achieve sparse attacks. Our method uses feature extraction and principal component analysis methods to reduce dimensions for each coordinate in a dataset, using unsupervised algorithms to search for sensitive point coordinates in a dataset. Then we generate adversarial samples by destroying high-frequency information at sensitive points based on frequency theory. We conducted extensive experiments on image and time-series datasets, which demonstrate that our approach is effective.
 
-## Approach
-
-![](figs/lct.png)
- <div align="center"> <img src="output_img\684.png" width = 500 height = 300 /> </div>
-
 ## Data
 
 The data used in this project comes from the [MNIST](http://yann.lecun.com/exdb/mnist/) and [FASHION-MNIST](https://github.com/zalandoresearch/fashion-mnist)
